@@ -1,0 +1,3 @@
+.header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.subtitle { color: var(--muted); font-size: 14px; margin-top: 6px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }

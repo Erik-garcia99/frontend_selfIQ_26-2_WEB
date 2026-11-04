@@ -1,0 +1,34 @@
+:root {
+  /* Paleta (de theme/colors.js del móvil) */
+  --bg: #BDD8E9;
+  --navy: #001D39;
+  --blue: #7BBDE8;
+  --text: #0A4174;
+  --muted: #587991;
+  --white: #F8FCFE;
+  --field: #FFFFFF;
+  --border: #D3E5F0;
+  --ink: #10273B;
+  --section: #49769F;
+  --green: #2CC65B;
+  --success-bg: #E3F7EA;
+  --success-text: #18794E;
+  --danger: #B3261E;
+  --danger-bg: #FCE9E8;
+  --danger-text: #B24A4A;
+  --placeholder: #B3B3B3;
+
+  /* Forma */
+  --radius-sm: 12px;
+  --radius: 16px;
+  --radius-lg: 22px;
+  --shadow: 0 10px 30px rgba(0, 29, 57, .10);
+  --shadow-lg: 0 18px 48px rgba(0, 29, 57, .22);
+
+  /* Layout */
+  --sidebar-w: 248px;
+  --topbar-h: 68px;
+  --content-max: 1180px;
+
+  --font: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}

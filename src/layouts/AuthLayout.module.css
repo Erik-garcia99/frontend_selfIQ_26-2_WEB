@@ -1,0 +1,20 @@
+.page { min-height: 100%; display: grid; grid-template-columns: minmax(380px, 46%) 1fr; }
+.brand { position: relative; overflow: hidden; background: var(--navy); color: var(--white); padding: 48px 56px; display: flex; flex-direction: column; justify-content: space-between; }
+.brand::before, .brand::after { content: ''; position: absolute; border-radius: 50%; border: 1px solid rgba(123, 189, 232, .25); pointer-events: none; }
+.brand::before { width: 520px; height: 520px; right: -200px; bottom: -160px; }
+.brand::after { width: 320px; height: 320px; right: -90px; bottom: -50px; }
+.headline { font-size: 38px; line-height: 1.15; font-weight: 700; max-width: 440px; }
+.lead { color: #BDD8E9; margin-top: 16px; max-width: 420px; font-size: 16px; }
+.list { list-style: none; padding: 0; margin: 36px 0 0; display: grid; gap: 14px; position: relative; z-index: 1; }
+.list li { display: flex; align-items: center; gap: 12px; color: #D5E6F2; font-size: 15px; }
+.list span { width: 28px; height: 28px; border-radius: 9px; background: rgba(123, 189, 232, .18); color: var(--blue); display: grid; place-items: center; flex: none; }
+.foot { color: #7FA3BF; font-size: 12px; position: relative; z-index: 1; }
+.main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; gap: 20px; }
+.box { width: 100%; max-width: 460px; }
+.mobileLogo { display: none; margin-bottom: 20px; color: var(--navy); }
+.status { text-align: center; font-size: 12px; color: var(--muted); max-width: 460px; }
+@media (max-width: 900px) {
+  .page { grid-template-columns: 1fr; }
+  .brand { display: none; }
+  .mobileLogo { display: block; }
+}
