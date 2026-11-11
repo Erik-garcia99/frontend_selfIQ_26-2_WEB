@@ -18,6 +18,11 @@
   --danger-text: #B24A4A;
   --placeholder: #B3B3B3;
 
+  /* Temperatura (de TemperatureIndicator del móvil) */
+  --cold: #7BBDE8;
+  --comfort: #99F0B7;
+  --hot: #FFC7C4;
+
   /* Forma */
   --radius-sm: 12px;
   --radius: 16px;

@@ -6,6 +6,8 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import Recovery from '../pages/auth/Recovery';
+import Home from '../pages/home/Home';
+import Alerts from '../pages/alerts/Alerts';
 import Placeholder from '../pages/shared/Placeholder';
 
 const page = (title, phase, description) => <Placeholder title={title} phase={phase} description={description} />;
@@ -18,8 +20,8 @@ export const router = createBrowserRouter([
   ] }] },
 
   { element: <RequireAuth />, children: [{ element: <DashboardLayout />, children: [
-    { path: '/inicio', element: page('Inicio', 3, 'Resumen de aforo, temperatura y accesos rápidos.') },
-    { path: '/alertas', element: page('Alertas', 3, 'Alertas de tu sucursal.') },
+    { path: '/inicio', element: <Home /> },
+    { path: '/alertas', element: <Alerts /> },
     { path: '/ajustes', element: page('Ajustes', 4, 'Perfil, notificaciones y seguridad.') },
 
     { element: <RequireRole allow={canManage} />, children: [

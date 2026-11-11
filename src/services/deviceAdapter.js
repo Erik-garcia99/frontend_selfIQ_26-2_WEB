@@ -46,6 +46,32 @@ function confirmed(result, message, check = () => true) {
   return result;
 }
 
+// El backend entrega `X-Captured-At` como "YYYY-MM-DD HH:MM:SS.ffffff+00:00".
+// Se normaliza a ISO 8601 para que Date.parse lo acepte en cualquier motor.
+function snapshotTimestamp(value) {
+  if (!value) return null;
+  const match = String(value).trim().match(
+    /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})(?:\.(\d+))?\s*(Z|[+-]\d{2}:?\d{2})?$/,
+  );
+  if (!match) return String(value);
+  const [, date, time, fraction, zone = 'Z'] = match;
+  const millis = (fraction || '').padEnd(3, '0').slice(0, 3);
+  const offset = zone === 'Z' || zone.includes(':')
+    ? zone
+    : `${zone.slice(0, 3)}:${zone.slice(3)}`;
+  return `${date}T${time}.${millis}${offset}`;
+}
+
+// Huella barata del JPEG para detectar una foto nueva sin depender de la fecha.
+function snapshotFingerprint(bytes) {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < bytes.length; index += 1) {
+    hash ^= bytes[index];
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return `${bytes.length}-${hash.toString(16)}`;
+}
+
 export const deviceAdapter = {
   async listGateways({ branchId, accessToken }) {
     const rows = await apiRequest('/gateways', { accessToken });
@@ -135,7 +161,7 @@ export const deviceAdapter = {
     if (!response.ok) {
       throw new ApiError('No se pudo obtener la foto.', response.status);
     }
-    const capturedAt = response.headers.get('X-Captured-At');
+    const capturedAt = snapshotTimestamp(response.headers.get('X-Captured-At'));
     const arrayBuffer = await response.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
     let binary = '';
@@ -143,7 +169,11 @@ export const deviceAdapter = {
       binary += String.fromCharCode(bytes[i]);
     }
     const base64 = btoa(binary);
-    return { uri: `data:image/jpeg;base64,${base64}`, capturedAt };
+    return {
+      uri: `data:image/jpeg;base64,${base64}`,
+      capturedAt,
+      fingerprint: snapshotFingerprint(bytes),
+    };
   },
 
   async updateDevice({ branchId, deviceId, name, location, accessToken }) {
