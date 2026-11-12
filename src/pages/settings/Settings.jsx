@@ -1,22 +1,19 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Icon, PageHeader } from '../../components';
+import { PageHeader } from '../../components';
 import styles from './Settings.module.css';
 
 const TABS = [
-  { to: 'perfil', label: 'Perfil', icon: 'user' },
-  { to: 'notificaciones', label: 'Notificaciones', icon: 'bell' },
-  { to: 'seguridad', label: 'Seguridad', icon: 'lock' },
+  { to: 'perfil', label: 'Perfil' },
+  { to: 'notificaciones', label: 'Notificaciones' },
+  { to: 'seguridad', label: 'Seguridad' },
 ];
 
 export default function Settings() {
   return <>
-    <PageHeader title="Ajustes" subtitle="Tu cuenta, avisos y contraseña." />
-    <div className={styles.layout}>
-      <nav className={styles.tabs} aria-label="Secciones de ajustes">
-        {TABS.map((tab) => <NavLink key={tab.to} to={tab.to} className={({ isActive }) => `${styles.tab} ${isActive ? styles.active : ''}`}>
-          <Icon name={tab.icon} size={18} />{tab.label}</NavLink>)}
-      </nav>
-      <div className={styles.panel}><Outlet /></div>
-    </div>
+    <PageHeader title="Ajustes" subtitle="Perfil, notificaciones y seguridad" />
+    <nav className={styles.tabs}>
+      {TABS.map((t) => <NavLink key={t.to} to={t.to} className={({ isActive }) => `${styles.tab} ${isActive ? styles.active : ''}`}>{t.label}</NavLink>)}
+    </nav>
+    <div className={styles.content}><Outlet /></div>
   </>;
 }

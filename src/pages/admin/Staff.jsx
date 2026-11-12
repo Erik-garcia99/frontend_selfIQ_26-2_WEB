@@ -1,24 +1,17 @@
 import { Link } from 'react-router-dom';
-import { Icon, PageHeader } from '../../components';
+import { Card, Icon, PageHeader } from '../../components';
 import { useAuth } from '../../context/AuthContext';
-import { canApprove, canCreateBranch } from '../../utils/validation';
+import { canApprove, canCreateBranch, canManage } from '../../utils/validation';
 import styles from './admin.module.css';
 
 export default function Staff() {
   const { user } = useAuth();
-  const items = [
-    canApprove(user) && { to: '/personal/aprobar', icon: 'users', title: 'Aprobar usuarios', text: 'Revisa las cuentas pendientes y apruébalas o recházalas.' },
-    { to: '/personal/tokens', icon: 'key', title: 'Tokens de acceso', text: 'Genera o reemplaza los tokens para registrar personal.' },
-    canCreateBranch(user) && { to: '/sucursales/nueva', icon: 'plus', title: 'Crear sucursal', text: 'Da de alta una nueva sucursal de tu negocio.' },
-  ].filter(Boolean);
   return <>
-    <PageHeader title="Personal" subtitle="Accesos, aprobaciones y sucursales." />
-    <div className={styles.hub}>
-      {items.map((item) => <Link key={item.to} to={item.to} className={styles.hubCard}>
-        <div className={styles.hubIcon}><Icon name={item.icon} size={22} /></div>
-        <span className={styles.hubTitle}>{item.title}</span>
-        <span className={styles.hubText}>{item.text}</span>
-      </Link>)}
+    <PageHeader title="Personal" subtitle="Administración de accesos" />
+    <div className={styles.grid}>
+      {canApprove(user) && <Link to="/personal/aprobar" className={styles.card}><Icon name="users" /><span>Aprobar usuarios</span></Link>}
+      {canManage(user) && <Link to="/personal/tokens" className={styles.card}><Icon name="key" /><span>Tokens de acceso</span></Link>}
+      {canCreateBranch(user) && <Link to="/sucursales/nueva" className={styles.card}><Icon name="plus" /><span>Crear sucursal</span></Link>}
     </div>
   </>;
 }

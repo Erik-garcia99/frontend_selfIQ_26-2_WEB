@@ -1,41 +1,36 @@
-import { useState } from 'react';
-import { Badge, Button, Card, Field, Notice, useToast } from '../../components';
+import { useEffect, useState } from 'react';
+import { Button, Field, Notice } from '../../components';
 import { useAuth } from '../../context/AuthContext';
 import { updateProfile } from '../../services/settingsService';
-import { useAsyncAction } from '../../utils/useAsyncAction';
-import { roleLabel } from '../../utils/validation';
-import styles from './Settings.module.css';
+import styles from './ProfileTab.module.css';
 
 export default function ProfileTab() {
   const { user, accessToken, refreshUser } = useAuth();
-  const toast = useToast();
-  const task = useAsyncAction();
-  const [form, setForm] = useState({ first_name: user?.first_name || '', last_name: user?.last_name || '' });
-  const bind = (key) => ({ value: form[key], disabled: task.loading, onChange: (e) => setForm((old) => ({ ...old, [key]: e.target.value })) });
-  const dirty = form.first_name.trim() !== (user?.first_name || '') || form.last_name.trim() !== (user?.last_name || '');
+  const [draft, setDraft] = useState({ first_name: user?.first_name || '', last_name: user?.last_name || '' });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  useEffect(() => { setDraft({ first_name: user?.first_name || '', last_name: user?.last_name || '' }); }, [user]);
 
-  const submit = async (event) => {
-    event.preventDefault();
-    const first_name = form.first_name.trim();
-    const last_name = form.last_name.trim();
-    if (!first_name || !last_name) return task.setError('Escribe tus nombres y apellidos.');
-    const ok = await task.run(async () => { await updateProfile({ first_name, last_name }, accessToken); await refreshUser(); return true; });
-    if (ok) toast.success('Perfil actualizado.');
+  const changed = draft.first_name !== (user?.first_name || '') || draft.last_name !== (user?.last_name || '');
+  const save = async () => {
+    setSaving(true); setMessage('');
+    try {
+      await updateProfile({ first_name: draft.first_name, last_name: draft.last_name }, accessToken);
+      await refreshUser();
+      setMessage('Guardado.');
+    } catch (e) { setMessage(e.message || 'Error'); }
+    finally { setSaving(false); }
   };
 
-  return <Card title="Perfil">
-    <div className={styles.meta}><Badge tone="info">{roleLabel(user)}</Badge><span>{user?.email}</span></div>
-    <form onSubmit={submit} noValidate>
-      <div className={styles.grid2}>
-        <Field label="Nombres" autoComplete="given-name" {...bind('first_name')} />
-        <Field label="Apellidos" autoComplete="family-name" {...bind('last_name')} />
-      </div>
-      <Field label="Correo" type="email" value={user?.email || ''} disabled readOnly hint="El correo no se puede cambiar." />
-      <Notice>{task.error}</Notice>
-      <div className={styles.actions}>
-        <Button variant="secondary" disabled={!dirty || task.loading} onClick={() => { setForm({ first_name: user?.first_name || '', last_name: user?.last_name || '' }); task.setError(''); }}>Descartar</Button>
-        <Button type="submit" disabled={!dirty} loading={task.loading} loadingLabel="Guardando…">Guardar cambios</Button>
-      </div>
-    </form>
-  </Card>;
+  return <div className={styles.wrap}>
+    <Field label="Correo" value={user?.email || ''} readOnly />
+    <Field label="Rol" value={user?.role || ''} readOnly />
+    <Field label="Nombres" value={draft.first_name} onChange={(e) => setDraft({ ...draft, first_name: e.target.value })} />
+    <Field label="Apellidos" value={draft.last_name} onChange={(e) => setDraft({ ...draft, last_name: e.target.value })} />
+    {message && <Notice tone={message === 'Guardado.' ? 'success' : 'danger'}>{message}</Notice>}
+    <div className={styles.row}>
+      <Button onClick={save} disabled={!changed || saving}>{saving ? 'Guardando…' : 'Guardar'}</Button>
+      <Button variant="secondary" onClick={() => setDraft({ first_name: user?.first_name || '', last_name: user?.last_name || '' })} disabled={!changed}>Descartar</Button>
+    </div>
+  </div>;
 }

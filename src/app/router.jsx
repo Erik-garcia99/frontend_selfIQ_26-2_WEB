@@ -11,6 +11,14 @@ import Alerts from '../pages/alerts/Alerts';
 import Devices from '../pages/devices/Devices';
 import DeviceDetail from '../pages/devices/DeviceDetail';
 import AddDevice from '../pages/devices/AddDevice';
+import Settings from '../pages/settings/Settings';
+import ProfileTab from '../pages/settings/ProfileTab';
+import NotificationsTab from '../pages/settings/NotificationsTab';
+import SecurityTab from '../pages/settings/SecurityTab';
+import Staff from '../pages/admin/Staff';
+import ApproveUsers from '../pages/admin/ApproveUsers';
+import Tokens from '../pages/admin/Tokens';
+import CreateBranch from '../pages/admin/CreateBranch';
 import Placeholder from '../pages/shared/Placeholder';
 
 const page = (title, phase, description) => <Placeholder title={title} phase={phase} description={description} />;
@@ -25,18 +33,23 @@ export const router = createBrowserRouter([
   { element: <RequireAuth />, children: [{ element: <DashboardLayout />, children: [
     { path: '/inicio', element: <Home /> },
     { path: '/alertas', element: <Alerts /> },
-    { path: '/ajustes', element: page('Ajustes', 4, 'Perfil, notificaciones y seguridad.') },
+    { path: '/ajustes', element: <Settings />, children: [
+      { index: true, element: <Navigate to="perfil" replace /> },
+      { path: 'perfil', element: <ProfileTab /> },
+      { path: 'notificaciones', element: <NotificationsTab /> },
+      { path: 'seguridad', element: <SecurityTab /> },
+    ] },
 
     { element: <RequireRole allow={canManage} />, children: [
       { path: '/dispositivos', element: <Devices /> },
       { path: '/dispositivos/agregar', element: <AddDevice /> },
       { path: '/dispositivos/:deviceId', element: <DeviceDetail /> },
-      { path: '/personal', element: page('Personal', 5, 'Administración de accesos.') },
-      { path: '/personal/aprobar', element: page('Aprobar usuarios', 5, 'Cuentas pendientes de aprobación.') },
-      { path: '/personal/tokens', element: page('Tokens de acceso', 5, 'Generar o reemplazar tokens.') },
+      { path: '/personal', element: <Staff /> },
+      { path: '/personal/aprobar', element: <ApproveUsers /> },
+      { path: '/personal/tokens', element: <Tokens /> },
     ] },
     { element: <RequireRole allow={canCreateBranch} />, children: [
-      { path: '/sucursales/nueva', element: page('Crear sucursal', 5, 'Alta de una nueva sucursal.') },
+      { path: '/sucursales/nueva', element: <CreateBranch /> },
     ] },
   ] }] },
 
