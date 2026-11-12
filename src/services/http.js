@@ -3,11 +3,14 @@ export { API_BASE_URL } from '../config/env';
 let onUnauthorized = null;
 export function setUnauthorizedHandler(handler) { onUnauthorized = handler; }
 export class ApiError extends Error {
-  constructor(message, status) { super(message); this.name = 'ApiError'; this.status = status; }
+  constructor(message, status, code = null, details = null) {
+    super(message); this.name = 'ApiError'; this.status = status; this.code = code; this.details = details;
+  }
 }
 function errorMessage(detail, status) {
   if (Array.isArray(detail)) return detail.map((item) => item.msg || 'Dato inválido').join('\n');
   if (typeof detail === 'string') return detail;
+  if (detail && typeof detail.message === 'string') return detail.message;
   return status === 401 ? 'Tu sesión venció. Inicia sesión nuevamente.' : 'No se pudo completar la solicitud.';
 }
 export async function apiRequest(path, options = {}) {
@@ -34,7 +37,7 @@ export async function apiRequest(path, options = {}) {
         errorMessage(null, response.status), response.status);
     }
     if (!response.ok) {
-      throw new ApiError(errorMessage(data.detail, response.status), response.status);
+      throw new ApiError(errorMessage(data.detail ?? data, response.status), response.status, data.code, data.details);
     }
     return data;
   } catch (error) {

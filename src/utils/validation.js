@@ -5,5 +5,6 @@ export const isSuperuser = (user) => user?.is_superuser === true || user?.role?.
 export const canManage = (user) => isSuperuser(user) || ['owner', 'manager', 'rh', 'gerencia'].includes(user?.role?.toLowerCase());
 export const canApprove = (user) => isSuperuser(user) || ['owner', 'rh'].includes(user?.role?.toLowerCase());
 export const canCreateBranch = (user) => isSuperuser(user) || user?.role?.toLowerCase() === 'owner';
+export const canUsePos = (user) => Boolean(user);
 export const roleLabel = (user) => isSuperuser(user) ? 'Superusuario'
   : ({ owner: 'Propietario', manager: 'Administrador', rh: 'Recursos Humanos', gerencia: 'Gerencia', employee: 'Empleado', staff: 'Personal' }[user?.role?.toLowerCase()] || 'Usuario');

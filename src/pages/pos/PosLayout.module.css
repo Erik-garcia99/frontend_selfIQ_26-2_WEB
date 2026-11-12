@@ -1,0 +1,3 @@
+.tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.tab { padding: 0.5rem 1rem; border-radius: 8px; background: var(--white); color: var(--text); text-decoration: none; border: 1px solid var(--border); }
+.active { background: var(--blue); color: var(--white); border-color: var(--blue); }

@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { canCreateBranch, canManage } from '../utils/validation';
+import { canCreateBranch, canManage, canUsePos } from '../utils/validation';
 import { PublicOnly, RequireAuth, RequireRole } from './guards';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
@@ -15,10 +15,11 @@ import Settings from '../pages/settings/Settings';
 import ProfileTab from '../pages/settings/ProfileTab';
 import NotificationsTab from '../pages/settings/NotificationsTab';
 import SecurityTab from '../pages/settings/SecurityTab';
-import Staff from '../pages/admin/Staff';
-import ApproveUsers from '../pages/admin/ApproveUsers';
-import Tokens from '../pages/admin/Tokens';
 import CreateBranch from '../pages/admin/CreateBranch';
+import PosLayout from '../pages/pos/PosLayout';
+import Caja from '../pages/pos/Caja';
+import Inventario from '../pages/pos/Inventario';
+import Historial from '../pages/pos/Historial';
 import Placeholder from '../pages/shared/Placeholder';
 
 const page = (title, phase, description) => <Placeholder title={title} phase={phase} description={description} />;
@@ -44,9 +45,13 @@ export const router = createBrowserRouter([
       { path: '/dispositivos', element: <Devices /> },
       { path: '/dispositivos/agregar', element: <AddDevice /> },
       { path: '/dispositivos/:deviceId', element: <DeviceDetail /> },
-      { path: '/personal', element: <Staff /> },
-      { path: '/personal/aprobar', element: <ApproveUsers /> },
-      { path: '/personal/tokens', element: <Tokens /> },
+    ] },
+    { element: <RequireRole allow={canUsePos} />, children: [
+      { path: '/pos', element: <PosLayout />, children: [
+        { index: true, element: <Caja /> },
+        { path: 'inventario', element: <Inventario /> },
+        { path: 'historial', element: <Historial /> },
+      ] },
     ] },
     { element: <RequireRole allow={canCreateBranch} />, children: [
       { path: '/sucursales/nueva', element: <CreateBranch /> },

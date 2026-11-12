@@ -43,7 +43,7 @@ export default function Home() {
     canCreateBranch(user) && { to: '/sucursales/nueva', icon: 'plus', title: 'Crear sucursal', detail: 'Usar el token global de empresa' },
     canManage(user) && { to: '/dispositivos/agregar', icon: 'plus', title: 'Agregar dispositivo', detail: 'Buscar y registrar dispositivos' },
     canManage(user) && { to: '/dispositivos', icon: 'devices', title: 'Dispositivos', detail: 'Consulta los equipos de tu sucursal' },
-    canManage(user) && { to: '/personal', icon: 'users', title: 'Personal y tokens', detail: 'Administrar accesos' },
+
     { to: '/ajustes', icon: 'user', title: 'Mi cuenta', detail: 'Consultar datos y sesión' },
   ].filter(Boolean);
 

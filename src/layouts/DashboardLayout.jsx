@@ -4,14 +4,15 @@ import { Button, Icon, Logo, Modal } from '../components';
 import { useAuth } from '../context/AuthContext';
 import { useDevices } from '../context/DeviceContext';
 import { APP_VERSION } from '../config/appInfo';
-import { canManage, roleLabel } from '../utils/validation';
+import { canManage, canUsePos, roleLabel } from '../utils/validation';
 import styles from './DashboardLayout.module.css';
 
 const ITEMS = [
   { to: '/inicio', label: 'Inicio', icon: 'home' },
   { to: '/alertas', label: 'Alertas', icon: 'bell' },
   { to: '/dispositivos', label: 'Dispositivos', icon: 'devices', allow: canManage },
-  { to: '/personal', label: 'Personal', icon: 'users', allow: canManage },
+  { to: '/pos', label: 'POS', icon: 'box', allow: canUsePos },
+
   { to: '/ajustes', label: 'Ajustes', icon: 'settings' },
 ];
 
