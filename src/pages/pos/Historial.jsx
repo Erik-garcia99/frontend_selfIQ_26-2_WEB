@@ -1,20 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Modal, Notice, PageHeader, Table } from '../../components';
+import { Button, Field, Modal, Notice, Table } from '../../components';
 import { useAuth } from '../../context/AuthContext';
 import { useDevices } from '../../context/DeviceContext';
-import { getSale, listSales } from '../../services/salesService';
+import { getSale, listSales, voidSale } from '../../services/salesService';
+import { canManage } from '../../utils/validation';
 import { formatDateTime } from '../../utils/format';
 
 const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
 export default function Historial() {
-  const { accessToken } = useAuth();
+  const { user, accessToken } = useAuth();
   const { branchId } = useDevices();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [detail, setDetail] = useState(null);
   const [detailError, setDetailError] = useState('');
+  const [voidTarget, setVoidTarget] = useState(null);
+  const [voidReason, setVoidReason] = useState('');
+  const [voiding, setVoiding] = useState(false);
+  const [voidError, setVoidError] = useState('');
 
   const load = useCallback(async () => {
     if (!branchId) return;
@@ -27,6 +32,17 @@ export default function Historial() {
   }, [branchId, accessToken]);
 
   useEffect(() => { load(); }, [load]);
+
+  const confirmVoid = async () => {
+    if (!voidTarget || !voidReason.trim()) return;
+    setVoiding(true); setVoidError('');
+    try {
+      await voidSale(branchId, voidTarget.id, voidReason.trim(), accessToken);
+      setVoidTarget(null); setVoidReason(''); setDetail(null);
+      await load();
+    } catch (e) { setVoidError(e.message || 'No se pudo anular la venta.'); }
+    finally { setVoiding(false); }
+  };
 
   const open = async (row) => {
     setDetailError(''); setDetail(row);
@@ -50,7 +66,10 @@ export default function Historial() {
       ]} />
 
     <Modal open={!!detail} title={detail ? `Venta ${detail.sale_number}` : 'Venta'} onClose={() => setDetail(null)}
-      footer={<Button variant="secondary" onClick={() => setDetail(null)}>Cerrar</Button>}>
+      footer={<>
+        {detail && detail.status !== 'voided' && canManage(user) && <Button variant="danger" onClick={() => { setVoidTarget(detail); setVoidReason(''); setVoidError(''); }}>Anular venta</Button>}
+        <Button variant="secondary" onClick={() => setDetail(null)}>Cerrar</Button>
+      </>}>
       {detailError && <Notice tone="danger">{detailError}</Notice>}
       {detail && <>
         <p><strong>Total:</strong> {money.format(Number(detail.total))} · <strong>Estado:</strong> {detail.status}</p>
@@ -63,6 +82,15 @@ export default function Historial() {
             { key: 'subtotal', label: 'Importe', render: (r) => money.format(Number(r.subtotal)) },
           ]} />
       </>}
+    </Modal>
+
+    <Modal open={!!voidTarget} title={voidTarget ? `Anular ${voidTarget.sale_number}` : 'Anular venta'}
+      onClose={() => setVoidTarget(null)}
+      footer={<><Button variant="secondary" onClick={() => setVoidTarget(null)}>Cancelar</Button>
+        <Button variant="danger" onClick={confirmVoid} disabled={!voidReason.trim() || voiding}>{voiding ? 'Anulando…' : 'Anular'}</Button></>}>
+      <p>Se devolverán las existencias y la venta quedará marcada como anulada.</p>
+      <Field label="Motivo de la anulación" value={voidReason} onChange={(e) => setVoidReason(e.target.value)} />
+      {voidError && <Notice tone="danger">{voidError}</Notice>}
     </Modal>
   </>;
 }

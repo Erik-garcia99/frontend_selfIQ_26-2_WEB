@@ -12,6 +12,7 @@ const ITEMS = [
   { to: '/alertas', label: 'Alertas', icon: 'bell' },
   { to: '/dispositivos', label: 'Dispositivos', icon: 'devices', allow: canManage },
   { to: '/pos', label: 'POS', icon: 'box', allow: canUsePos },
+  { to: '/productos', label: 'Productos', icon: 'shelves', allow: canUsePos },
 
   { to: '/ajustes', label: 'Ajustes', icon: 'settings' },
 ];

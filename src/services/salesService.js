@@ -13,3 +13,13 @@ export const listSales = (branchId, accessToken) =>
 
 export const getSale = (branchId, saleId, accessToken) =>
   apiRequest(`${base(branchId)}/sales/${encodeURIComponent(saleId)}`, { accessToken });
+
+export const voidSale = (branchId, saleId, reason, accessToken) =>
+  apiRequest(`${base(branchId)}/sales/${encodeURIComponent(saleId)}/void`, {
+    method: 'POST', body: { reason }, accessToken,
+  });
+
+export const returnSale = (branchId, saleId, items, reason, accessToken) =>
+  apiRequest(`${base(branchId)}/sales/${encodeURIComponent(saleId)}/returns`, {
+    method: 'POST', body: { items, reason }, accessToken,
+  });

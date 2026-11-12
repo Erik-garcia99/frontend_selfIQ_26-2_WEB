@@ -5,6 +5,7 @@ import styles from './PosLayout.module.css';
 const TABS = [
   { to: '.', label: 'Caja', end: true },
   { to: 'inventario', label: 'Inventario' },
+  { to: 'movimientos', label: 'Movimientos' },
   { to: 'historial', label: 'Historial' },
 ];
 

@@ -19,7 +19,9 @@ import CreateBranch from '../pages/admin/CreateBranch';
 import PosLayout from '../pages/pos/PosLayout';
 import Caja from '../pages/pos/Caja';
 import Inventario from '../pages/pos/Inventario';
+import Movimientos from '../pages/pos/Movimientos';
 import Historial from '../pages/pos/Historial';
+import Products from '../pages/products/Products';
 import Placeholder from '../pages/shared/Placeholder';
 
 const page = (title, phase, description) => <Placeholder title={title} phase={phase} description={description} />;
@@ -47,9 +49,11 @@ export const router = createBrowserRouter([
       { path: '/dispositivos/:deviceId', element: <DeviceDetail /> },
     ] },
     { element: <RequireRole allow={canUsePos} />, children: [
+      { path: '/productos', element: <Products /> },
       { path: '/pos', element: <PosLayout />, children: [
         { index: true, element: <Caja /> },
         { path: 'inventario', element: <Inventario /> },
+        { path: 'movimientos', element: <Movimientos /> },
         { path: 'historial', element: <Historial /> },
       ] },
     ] },
