@@ -8,3 +8,4 @@ export { Icon } from './Icon';
 export { Logo } from './Logo';
 export { PageHeader } from './PageHeader';
 export { EmptyState } from './EmptyState';
+export { Table } from './Table';
