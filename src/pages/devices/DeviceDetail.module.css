@@ -1,0 +1,11 @@
+.error { background: var(--danger); color: var(--white); padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+.label { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 0.25rem; }
+.muted { color: var(--muted); font-size: 0.9rem; }
+.form { display: flex; flex-direction: column; gap: 0.75rem; }
+.label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.9rem; color: var(--text); }
+.input { padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; }
+.snapshot { display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+.photo { max-width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+.lightRow { padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.pre { background: var(--bg); padding: 0.75rem; border-radius: 8px; font-size: 0.8rem; overflow: auto; }

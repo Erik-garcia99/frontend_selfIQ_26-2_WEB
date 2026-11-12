@@ -8,6 +8,9 @@ import Register from '../pages/auth/Register';
 import Recovery from '../pages/auth/Recovery';
 import Home from '../pages/home/Home';
 import Alerts from '../pages/alerts/Alerts';
+import Devices from '../pages/devices/Devices';
+import DeviceDetail from '../pages/devices/DeviceDetail';
+import AddDevice from '../pages/devices/AddDevice';
 import Placeholder from '../pages/shared/Placeholder';
 
 const page = (title, phase, description) => <Placeholder title={title} phase={phase} description={description} />;
@@ -25,9 +28,9 @@ export const router = createBrowserRouter([
     { path: '/ajustes', element: page('Ajustes', 4, 'Perfil, notificaciones y seguridad.') },
 
     { element: <RequireRole allow={canManage} />, children: [
-      { path: '/dispositivos', element: page('Dispositivos', 6, 'Gateways y nodos de la sucursal.') },
-      { path: '/dispositivos/agregar', element: page('Agregar dispositivo', 8, 'Asistente para registrar equipos.') },
-      { path: '/dispositivos/:deviceId', element: page('Detalle de dispositivo', 7, 'Lecturas, edición y eliminación.') },
+      { path: '/dispositivos', element: <Devices /> },
+      { path: '/dispositivos/agregar', element: <AddDevice /> },
+      { path: '/dispositivos/:deviceId', element: <DeviceDetail /> },
       { path: '/personal', element: page('Personal', 5, 'Administración de accesos.') },
       { path: '/personal/aprobar', element: page('Aprobar usuarios', 5, 'Cuentas pendientes de aprobación.') },
       { path: '/personal/tokens', element: page('Tokens de acceso', 5, 'Generar o reemplazar tokens.') },
