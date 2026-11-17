@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useDevices } from '../../context/DeviceContext';
 import { deviceLabel, statusLabel } from '../../services/deviceService';
 import { deviceAdapter } from '../../services/deviceAdapter';
+import { apiRequest } from '../../services/http';
 import { formatDateTime } from '../../utils/format';
 import styles from './DeviceDetail.module.css';
 
@@ -21,6 +22,13 @@ export default function DeviceDetail() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // occupancy adjust
+  const [adjustOpen, setAdjustOpen] = useState(false);
+  const [adjustValue, setAdjustValue] = useState('0');
+  const [adjustReason, setAdjustReason] = useState('');
+  const [adjusting, setAdjusting] = useState(false);
+  const [adjustMsg, setAdjustMsg] = useState('');
 
   // camera
   const [snapshot, setSnapshot] = useState(null);
@@ -83,6 +91,23 @@ export default function DeviceDetail() {
     finally { setSnapLoading(false); }
   };
 
+  const adjustOccupancy = async (value, reason) => {
+    setAdjusting(true); setAdjustMsg('');
+    try {
+      const v = Number(value);
+      if (!Number.isInteger(v) || v < 0) throw new Error('Valor inválido');
+      const result = await apiRequest(
+        `/branches/${encodeURIComponent(branchId)}/occupancy/adjustments`,
+        { method: 'POST', accessToken, body: { node_id: deviceId, value: v, reason: reason || 'Ajuste manual' } });
+      setAdjustMsg(`Aforo ajustado a ${result.value}.`);
+      setAdjustOpen(false);
+      await load();
+    } catch (e) { setAdjustMsg(e.message || 'No se pudo ajustar el aforo.'); }
+    finally { setAdjusting(false); }
+  };
+
+  const quickReset = () => adjustOccupancy(0, 'Reset rápido a 0');
+
   if (loading) return <PageHeader title="Cargando…" />;
   if (error && !device) return <><PageHeader title="Dispositivo" /><div className={styles.error}>{error}</div></>;
 
@@ -129,6 +154,15 @@ export default function DeviceDetail() {
       <pre className={styles.pre}>{JSON.stringify(device.readings, null, 2)}</pre>
     </Card>}
 
+    {device?.type === 'occupancy' && <Card title="Ajuste de aforo">
+      <p className={styles.muted}>Reset rápido a 0 con un solo toque; el ajuste fino permite indicar valor y motivo.</p>
+      {adjustMsg && <div className={styles.error}>{adjustMsg}</div>}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <Button onClick={quickReset} disabled={adjusting}>{adjusting ? 'Reseteando…' : 'Resetear a 0'}</Button>
+        <Button variant="secondary" onClick={() => setAdjustOpen(true)} disabled={adjusting}>Ajuste fino</Button>
+      </div>
+    </Card>}
+
     <Modal open={editing} title="Editar dispositivo" onClose={() => setEditing(false)}
       footer={<><Button variant="secondary" onClick={() => setEditing(false)}>Cancelar</Button>
         <Button onClick={save} disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</Button></>}>
@@ -146,6 +180,21 @@ export default function DeviceDetail() {
       footer={<><Button variant="secondary" onClick={() => setConfirmDelete(false)}>Cancelar</Button>
         <Button variant="danger" onClick={remove} disabled={deleting}>{deleting ? 'Eliminando…' : 'Eliminar'}</Button></>}>
       Esta acción no se puede deshacer.
+    </Modal>
+
+    <Modal open={adjustOpen} title="Ajustar contador de aforo" onClose={() => setAdjustOpen(false)}
+      footer={<><Button variant="secondary" onClick={() => setAdjustOpen(false)}>Cancelar</Button>
+        <Button onClick={() => adjustOccupancy(adjustValue, adjustReason)} disabled={adjusting}>{adjusting ? 'Ajustando…' : 'Aplicar'}</Button></>}>
+      <div className={styles.form}>
+        <label className={styles.label}>Nuevo valor (personas)
+          <input className={styles.input} type="number" min="0" value={adjustValue}
+            onChange={(e) => setAdjustValue(e.target.value)} />
+        </label>
+        <label className={styles.label}>Motivo
+          <input className={styles.input} value={adjustReason}
+            onChange={(e) => setAdjustReason(e.target.value)} placeholder="Ajuste manual" />
+        </label>
+      </div>
     </Modal>
   </>;
 }
