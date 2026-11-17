@@ -11,3 +11,6 @@ export const searchProducts = (branchId, q, accessToken, limit) =>
 // Catálogo existente del backend (app/devices.py), sin /api/v1.
 export const listCatalog = (branchId, search, accessToken) =>
   apiRequest(`/branches/${encodeURIComponent(branchId)}/products?search=${encodeURIComponent(search || '')}&limit=100`, { accessToken });
+
+export const getProductAvailability = (branchId, productId, accessToken) =>
+  apiRequest(`${base(branchId)}/products/${encodeURIComponent(productId)}/availability`, { accessToken });
