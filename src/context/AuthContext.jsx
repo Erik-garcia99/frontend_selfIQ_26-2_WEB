@@ -10,6 +10,7 @@ const STORAGE_KEY = 'selfiq.session';
 function readSession() {
   try {
     const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
+    if (stored?.user?.role?.toLowerCase() === 'customer') return null;
     return stored?.access_token && stored?.user ? stored : null;
   } catch { return null; }
 }
@@ -50,6 +51,9 @@ export function AuthProvider({ children }) {
   const signIn = async (email, password) => {
     const ownGeneration = ++generation.current;
     const result = await login(email, password);
+    if (result?.user?.role?.toLowerCase() === 'customer') {
+      throw new Error('Esta cuenta es de cliente. Por favor usa la app móvil de SelfIQ.');
+    }
     if (ownGeneration === generation.current) setSession(result);
     return result;
   };
