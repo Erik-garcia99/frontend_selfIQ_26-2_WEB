@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Field, Notice, Table } from '../../components';
+import { Button, Field, Modal, Notice, Table } from '../../components';
 import { useAuth } from '../../context/AuthContext';
 import { useDevices } from '../../context/DeviceContext';
 import { listInventory } from '../../services/inventoryService';
