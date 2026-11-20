@@ -237,6 +237,35 @@ export const deviceAdapter = {
     return confirmed(normalizeLight(result), 'Los cambios de la luz no fueron confirmados.');
   },
 
+  async listGuideAssociations({ branchId, accessToken }) {
+    return list(await apiRequest(`${branchPath(branchId)}/guide-associations`, { accessToken }))
+      .map(row => ({ ...row, id: row.productId }));
+  },
+
+  async listShelfProducts({ branchId, shelfId, accessToken }) {
+    if (!shelfId) return [];
+    return list(await apiRequest(
+      `${branchPath(branchId)}/shelves/${encodeURIComponent(shelfId)}/products`, { accessToken }))
+      .map(row => ({ id: row.id, sku: row.sku ?? '', name: row.name ?? '', active: row.active !== false }));
+  },
+
+  async assignGuideProduct({ branchId, productId, guidePointId, replaceProductId, accessToken }) {
+    const result = await apiRequest(`${branchPath(branchId)}/guide-associations`, {
+      method: 'POST', accessToken,
+      body: { product_id: productId, guide_point_id: guidePointId,
+        ...(replaceProductId ? { replace_product_id: replaceProductId } : {}) },
+    });
+    if (!result?.productId) throw new ApiError('La asociación no fue confirmada.', 502);
+    return result;
+  },
+
+  async unassignGuideProduct({ branchId, productId, accessToken }) {
+    await apiRequest(`${branchPath(branchId)}/guide-associations/${encodeURIComponent(productId)}`, {
+      method: 'DELETE', accessToken,
+    });
+    return { deleted: true };
+  },
+
   async testLight({ branchId, deviceId, channel, durationSeconds, accessToken }) {
     const result = await apiRequest(`${devicePath(branchId, deviceId)}/lights/test`, {
       method: 'POST',
