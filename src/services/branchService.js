@@ -5,5 +5,3 @@ async function withToken(promise, field) {
   return result;
 }
 export const createBranch = (payload, accessToken) => withToken(apiRequest('/branches', { method: 'POST', body: payload, accessToken }), 'branch_token');
-export const issueBusinessToken = (id, accessToken) => withToken(apiRequest(`/businesses/${encodeURIComponent(id)}/token`, { method: 'POST', accessToken }), 'business_token');
-export const issueBranchToken = (id, accessToken) => withToken(apiRequest(`/branches/${encodeURIComponent(id)}/token`, { method: 'POST', accessToken }), 'branch_token');

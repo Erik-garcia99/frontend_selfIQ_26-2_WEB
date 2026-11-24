@@ -11,7 +11,6 @@ const ITEMS = [
   { to: '/inicio', label: 'Inicio', icon: 'home' },
   { to: '/alertas', label: 'Alertas', icon: 'bell' },
   { to: '/dispositivos', label: 'Dispositivos', icon: 'devices', allow: canManage },
-  { to: '/personal', label: 'Personal', icon: 'users', allow: canManage },
   { to: '/pos', label: 'POS', icon: 'box', allow: canUsePos },
   { to: '/productos', label: 'Productos', icon: 'shelves', allow: canUsePos },
 

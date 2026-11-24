@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { canApprove, canCreateBranch, canManage, canUsePos } from '../utils/validation';
+import { canCreateBranch, canManage, canUsePos } from '../utils/validation';
 import { PublicOnly, RequireAuth, RequireRole } from './guards';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
@@ -16,10 +16,7 @@ import ProfileTab from '../pages/settings/ProfileTab';
 import NotificationsTab from '../pages/settings/NotificationsTab';
 import SecurityTab from '../pages/settings/SecurityTab';
 import CreateBranch from '../pages/admin/CreateBranch';
-import Staff from '../pages/admin/Staff';
-import ApproveUsers from '../pages/admin/ApproveUsers';
-import Tokens from '../pages/admin/Tokens';
-import People from '../pages/admin/People';
+
 import PosLayout from '../pages/pos/PosLayout';
 import Caja from '../pages/pos/Caja';
 import Inventario from '../pages/pos/Inventario';
@@ -51,12 +48,6 @@ export const router = createBrowserRouter([
       { path: '/dispositivos', element: <Devices /> },
       { path: '/dispositivos/agregar', element: <AddDevice /> },
       { path: '/dispositivos/:deviceId', element: <DeviceDetail /> },
-      { path: '/personal', element: <Staff /> },
-      { path: '/personal/personas', element: <People /> },
-      { path: '/personal/tokens', element: <Tokens /> },
-    ] },
-    { element: <RequireRole allow={canApprove} />, children: [
-      { path: '/personal/aprobar', element: <ApproveUsers /> },
     ] },
     { element: <RequireRole allow={canUsePos} />, children: [
       { path: '/productos', element: <Products /> },
