@@ -1,45 +1,60 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, Field, FeedbackDialog, Notice } from '../../components';
-import { register } from '../../services/authService';
+import { registerCustomer } from '../../services/authService';
 import { useAsyncAction } from '../../utils/useAsyncAction';
 import { describeError } from '../../utils/errorMessages';
 import { isEmail } from '../../utils/validation';
 import { usePageTitle } from '../../utils/usePageTitle';
 import styles from './auth.module.css';
 
-const EMPTY = { first_name: '', last_name: '', email: '', password: '', confirmation: '', registration_token: '' };
+// El alta de empleados la hace el encargado desde Personas (F-02). El registro
+// público queda solo para clientes y usa el código de la organización.
+const EMPTY = { first_name: '', last_name: '', email: '', password: '', confirmation: '', organization_code: '' };
 
 export default function Register() {
-  usePageTitle('Crear cuenta');
+  usePageTitle('Crear cuenta de cliente');
   const [form, setForm] = useState(EMPTY);
-  const [createdId, setCreatedId] = useState('');
   const [feedback, setFeedback] = useState(null);
   const task = useAsyncAction();
+  const navigate = useNavigate();
   const bind = (key) => ({ value: form[key], onChange: (e) => setForm((old) => ({ ...old, [key]: e.target.value })), disabled: task.loading });
-  const closeFeedback = () => setFeedback(null);
+  const closeFeedback = () => {
+    const wasSuccess = feedback?.variant === 'success';
+    setFeedback(null);
+    if (wasSuccess) navigate('/login');
+  };
 
   const submit = async (event) => {
     event.preventDefault();
-    if (!form.first_name.trim() || !form.last_name.trim() || !isEmail(form.email) || !form.registration_token.trim()) return task.setError('Completa nombres, apellidos, correo y token de sucursal.');
+    if (!form.first_name.trim() || !form.last_name.trim() || !isEmail(form.email)) {
+      return task.setError('Completa nombres, apellidos y un correo válido.');
+    }
+    if (!form.organization_code.trim()) {
+      return task.setError('Completa el código de organización que te dio la tienda.');
+    }
     if (form.password.length < 8) return task.setError('La contraseña debe tener al menos 8 caracteres.');
     if (form.password !== form.confirmation) return task.setError('Las contraseñas no coinciden.');
-    const result = await task.run(() => register({ first_name: form.first_name.trim(), last_name: form.last_name.trim(),
-      email: form.email.trim().toLowerCase(), password: form.password, registration_token: form.registration_token.trim() }));
+    const result = await task.run(() => registerCustomer({
+      first_name: form.first_name.trim(),
+      last_name: form.last_name.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      organization_code: form.organization_code.trim(),
+    }));
     if (!result) {
       const info = describeError(task.getFailure());
       task.setError('');
       return setFeedback({ variant: 'error', ...info, actionLabel: 'Corregir datos' });
     }
-    setCreatedId(result.user_id);
     setForm(EMPTY);
-    setFeedback({ variant: 'success', title: 'Cuenta creada', message: 'Tu registro quedó guardado y está pendiente de aprobación.',
-      hint: 'Un administrador debe aprobar la cuenta antes de que puedas iniciar sesión.', actionLabel: 'Entendido' });
+    setFeedback({ variant: 'success', title: 'Cuenta creada', message: 'Tu cuenta de cliente ya está activa.',
+      hint: 'Inicia sesión con tu correo y contraseña para empezar.', actionLabel: 'Iniciar sesión' });
   };
 
   return <div className={styles.card}>
-    <h1 className={styles.title}>Creación de usuario</h1>
-    <p className={styles.subtitle}>Registra tu cuenta con el token de tu sucursal. Un administrador la aprobará después.</p>
+    <h1 className={styles.title}>Crear cuenta de cliente</h1>
+    <p className={styles.subtitle}>Regístrate con el código que te dio la tienda para consultar disponibilidad y guías.</p>
     <form onSubmit={submit} noValidate>
       <div className={styles.grid2}>
         <Field label="Nombres" placeholder="Marcos" autoComplete="given-name" {...bind('first_name')} />
@@ -50,10 +65,9 @@ export default function Register() {
         <Field label="Contraseña" type="password" placeholder="Mínimo 8 caracteres" autoComplete="new-password" {...bind('password')} />
         <Field label="Confirmar contraseña" type="password" placeholder="Repite la contraseña" autoComplete="new-password" {...bind('confirmation')} />
       </div>
-      <Field label="Token de la sucursal" placeholder="Token que te dio tu administrador" autoComplete="off" spellCheck={false} {...bind('registration_token')} />
+      <Field label="Código de la organización" placeholder="Código que te dio la tienda" autoComplete="off" {...bind('organization_code')} />
       <Notice>{task.error}</Notice>
-      {createdId && <p className={styles.note}>Folio para aprobación: <strong>{createdId}</strong></p>}
-      <Button type="submit" full loading={task.loading}>Registrar usuario</Button>
+      <Button type="submit" full loading={task.loading}>Crear cuenta de cliente</Button>
     </form>
     <p className={styles.switch}>¿Ya tienes cuenta? <Link to="/login">Iniciar sesión</Link></p>
     <FeedbackDialog open={Boolean(feedback)} {...feedback} onClose={closeFeedback} />

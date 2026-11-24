@@ -9,6 +9,7 @@ export default function Staff() {
   return <>
     <PageHeader title="Personal" subtitle="Administración de accesos" />
     <div className={styles.grid}>
+      {canManage(user) && <Link to="/personal/personas" className={styles.card}><Icon name="users" /><span>Personas</span></Link>}
       {canApprove(user) && <Link to="/personal/aprobar" className={styles.card}><Icon name="users" /><span>Aprobar usuarios</span></Link>}
       {canManage(user) && <Link to="/personal/tokens" className={styles.card}><Icon name="key" /><span>Tokens de acceso</span></Link>}
       {canCreateBranch(user) && <Link to="/sucursales/nueva" className={styles.card}><Icon name="plus" /><span>Crear sucursal</span></Link>}
