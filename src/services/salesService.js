@@ -2,10 +2,13 @@ import { apiRequest } from './http';
 
 const base = (branchId) => `/api/v1/branches/${encodeURIComponent(branchId)}`;
 
-export const createSale = (branchId, payload, idempotencyKey, accessToken) =>
+export const createSale = (branchId, payload, idempotencyKey, accessToken, unlockToken) =>
   apiRequest(`${base(branchId)}/sales`, {
     method: 'POST', body: payload, accessToken,
-    headers: { 'Idempotency-Key': idempotencyKey },
+    headers: {
+      'Idempotency-Key': idempotencyKey,
+      ...(unlockToken ? { 'X-POS-Unlock': unlockToken } : {}),
+    },
   });
 
 export const listSales = (branchId, accessToken) =>

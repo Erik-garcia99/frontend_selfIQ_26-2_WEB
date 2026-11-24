@@ -4,17 +4,29 @@ import { useAuth } from '../../context/AuthContext';
 import { useDevices } from '../../context/DeviceContext';
 import { lookupProduct, searchProducts } from '../../services/productsService';
 import { createSale } from '../../services/salesService';
+import { unlockPos } from '../../services/posService';
 import styles from './Caja.module.css';
 
 const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 const cartKey = (branchId) => `pos.cart.${branchId}`;
 const idemKey = (branchId) => `pos.idempotency.${branchId}`;
+const unlockKey = (branchId) => `pos.unlock.${branchId}`;
+const AUTO_LOCK_MS = 5 * 60 * 1000;
 
 const readCart = (branchId) => {
   try { return JSON.parse(sessionStorage.getItem(cartKey(branchId)) || '[]'); } catch { return []; }
 };
 const readKey = (branchId) => {
   try { return sessionStorage.getItem(idemKey(branchId)) || ''; } catch { return ''; }
+};
+const readUnlock = (branchId) => {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(unlockKey(branchId)) || 'null');
+    return value && value.token && Date.parse(value.expiresAt) > Date.now() ? value.token : '';
+  } catch { return ''; }
+};
+const clearUnlock = (branchId) => {
+  try { sessionStorage.removeItem(unlockKey(branchId)); } catch { /* sin storage */ }
 };
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
 
@@ -32,10 +44,38 @@ export default function Caja() {
   const [payment, setPayment] = useState('cash');
   const [received, setReceived] = useState('');
   const [sale, setSale] = useState(null);
+  const [locked, setLocked] = useState(true);
+  const [password, setPassword] = useState('');
+  const [unlocking, setUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState('');
+  const idleTimer = useRef(null);
 
   useEffect(() => {
-    if (branchId) setCart(readCart(branchId));
+    if (branchId) {
+      setCart(readCart(branchId));
+      setLocked(!readUnlock(branchId));
+    }
   }, [branchId]);
+
+  // Auto-bloqueo por inactividad. El backend además vence el token a los 20 min.
+  useEffect(() => {
+    if (!branchId || locked) return undefined;
+    const reset = () => {
+      clearTimeout(idleTimer.current);
+      idleTimer.current = setTimeout(() => {
+        clearUnlock(branchId);
+        setLocked(true);
+        setNotice('La caja se bloqueó por inactividad.');
+      }, AUTO_LOCK_MS);
+    };
+    const events = ['keydown', 'click', 'input'];
+    events.forEach((name) => window.addEventListener(name, reset));
+    reset();
+    return () => {
+      clearTimeout(idleTimer.current);
+      events.forEach((name) => window.removeEventListener(name, reset));
+    };
+  }, [branchId, locked]);
   useEffect(() => {
     if (branchId) try { sessionStorage.setItem(cartKey(branchId), JSON.stringify(cart)); } catch { /* sin storage */ }
   }, [branchId, cart]);
@@ -93,8 +133,40 @@ export default function Caja() {
 
   const removeItem = (id) => setCart((prev) => prev.filter((item) => item.id !== id));
 
+  const handleUnlock = async (event) => {
+    event.preventDefault();
+    if (!branchId || !password || unlocking) return;
+    setUnlocking(true); setUnlockError('');
+    try {
+      const data = await unlockPos(branchId, password, accessToken);
+      try {
+        sessionStorage.setItem(unlockKey(branchId), JSON.stringify({
+          token: data.token, expiresAt: data.unlocked_until,
+        }));
+      } catch { /* sin storage: el token vive solo en memoria */ }
+      setPassword(''); setLocked(false); setNotice('Caja desbloqueada.');
+    } catch (e) {
+      setUnlockError(e.message || 'No se pudo desbloquear.');
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
+  const lock = () => {
+    if (!branchId) return;
+    clearUnlock(branchId);
+    setLocked(true); setPassword(''); setUnlockError('');
+    setNotice('Caja bloqueada.');
+  };
+
   const checkout = async () => {
     if (!cart.length || !branchId) return;
+    const token = readUnlock(branchId);
+    if (!token) {
+      setLocked(true);
+      setError('Escribe tu contraseña para desbloquear la caja antes de cobrar.');
+      return;
+    }
     setLoading(true); setError(''); setNotice(''); setSale(null);
     let key = readKey(branchId);
     if (!key) {
@@ -107,12 +179,18 @@ export default function Caja() {
       payment: { method: payment, amount_received: payment === 'cash' && received ? Number(received) : null },
     };
     try {
-      const result = await createSale(branchId, payload, key, accessToken);
+      const result = await createSale(branchId, payload, key, accessToken, token);
       setSale(result);
       setCart([]);
       setReceived('');
       try { sessionStorage.removeItem(idemKey(branchId)); } catch { /* sin storage */ }
     } catch (e) {
+      if (e.code === 'POS_LOCKED') {
+        clearUnlock(branchId);
+        setLocked(true);
+        setError('El desbloqueo venció. Vuelve a escribir tu contraseña.');
+        return;
+      }
       setError(e.message || 'No se pudo cobrar.');
       // Si fue error de red, se conserva la clave para reintentar sin duplicar.
       if (e.status && e.status !== 0 && e.status !== 408) {
@@ -124,8 +202,26 @@ export default function Caja() {
     }
   };
 
+  if (locked) return <>
+    <PageHeader title="Caja bloqueada" subtitle="Escribe tu contraseña para volver a vender." />
+    <div className={styles.locked}>
+      <form onSubmit={handleUnlock}>
+        <Field label="Contraseña" type="password" value={password}
+          onChange={(e) => setPassword(e.target.value)} autoFocus autoComplete="current-password" />
+        <Button type="submit" disabled={unlocking || !password || !branchId}>
+          {unlocking ? 'Comprobando…' : 'Desbloquear caja'}
+        </Button>
+      </form>
+      {!branchId && <Notice tone="danger">Selecciona una sucursal.</Notice>}
+      {unlockError && <Notice tone="danger">{unlockError}</Notice>}
+    </div>
+  </>;
+
   return <>
     {!branchId && <Notice tone="danger">Selecciona una sucursal para vender.</Notice>}
+    <div className={styles.lockRow}>
+      <Button variant="secondary" onClick={lock}>Bloquear caja</Button>
+    </div>
 
     <form className={styles.scan} onSubmit={handleLookup}>
       <Field ref={barcodeRef} label="Escanear código (SKU / código de barras)" value={barcode}
