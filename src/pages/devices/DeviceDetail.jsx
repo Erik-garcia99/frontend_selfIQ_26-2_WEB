@@ -38,6 +38,8 @@ export default function DeviceDetail() {
   // lights (guide)
   const [lights, setLights] = useState([]);
   const [lightsLoading, setLightsLoading] = useState(false);
+  const [testingLight, setTestingLight] = useState(null);
+  const [lightMsg, setLightMsg] = useState('');
 
   const load = useCallback(async () => {
     if (!branchId || !deviceId) return;
@@ -91,6 +93,17 @@ export default function DeviceDetail() {
     finally { setSnapLoading(false); }
   };
 
+  const testGuideLight = async (light) => {
+    setTestingLight(light.id); setLightMsg('');
+    try {
+      await deviceAdapter.testLight({
+        branchId, deviceId, channel: light.channel, durationSeconds: 10, accessToken,
+      });
+      setLightMsg(`LED ${light.channel + 1} encendido 10 s. Comprueba la luz.`);
+    } catch (e) { setLightMsg(e.message || 'No se pudo encender el LED.'); }
+    finally { setTestingLight(null); }
+  };
+
   const adjustOccupancy = async (value, reason) => {
     setAdjusting(true); setAdjustMsg('');
     try {
@@ -131,27 +144,37 @@ export default function DeviceDetail() {
       </div>
     </Card>}
 
-    {device?.type === 'camera' && <Card title="Foto">
+    {device?.type === 'camera' && <Card title="Última imagen de la repisa">
       <div className={styles.snapshot}>
-        {snapshot?.uri && <img src={snapshot.uri} alt="Snapshot" className={styles.photo} />}
-        {snapshot?.capturedAt && <p className={styles.muted}>Capturada: {formatDateTime(snapshot.capturedAt)}</p>}
+        {snapshot?.uri && <img src={snapshot.uri} alt="Foto actual de la repisa" className={styles.photo} />}
         {snapError && <div className={styles.error}>{snapError}</div>}
-        <Button onClick={takeSnapshot} disabled={snapLoading}>{snapLoading ? 'Tomando foto…' : 'Tomar foto'}</Button>
+        <Button onClick={takeSnapshot} disabled={snapLoading}>
+          {snapLoading ? 'Actualizando imagen…' : snapshot ? 'Actualizar imagen' : 'Tomar foto'}
+        </Button>
       </div>
     </Card>}
 
-    {device?.type === 'guide' && <Card title="Luces / estantes">
+    {device?.type === 'guide' && <Card title="Guía LED">
+      {lightMsg && <p className={styles.muted}>{lightMsg}</p>}
       {lightsLoading && <p className={styles.muted}>Cargando luces…</p>}
       {!lightsLoading && lights.length === 0 && <p className={styles.muted}>Sin luces registradas.</p>}
       {lights.map((l) => (
         <div key={l.id} className={styles.lightRow}>
-          <div><strong>{l.name}</strong> · canal {l.channel} · {l.shelfName || 'sin estante'}</div>
+          <div><strong>{l.name}</strong> · LED {l.channel + 1} · {l.shelfName || 'sin estante'}</div>
+          <Button variant="secondary" onClick={() => testGuideLight(l)} disabled={testingLight !== null}>
+            {testingLight === l.id ? 'Encendiendo…' : 'Encender 10 s'}
+          </Button>
         </div>
       ))}
     </Card>}
 
     {device?.readings && <Card title="Lecturas">
-      <pre className={styles.pre}>{JSON.stringify(device.readings, null, 2)}</pre>
+      <div className={styles.grid}>
+        <div><span className={styles.label}>Aforo actual</span><div>{device.readings.occupancy ?? '—'}</div></div>
+        <div><span className={styles.label}>Temperatura</span><div>{device.readings.temperature != null ? `${device.readings.temperature} °C` : '—'}</div></div>
+        <div><span className={styles.label}>Humedad</span><div>{device.readings.humidity != null ? `${device.readings.humidity} %` : '—'}</div></div>
+        <div><span className={styles.label}>Última medición</span><div>{device.readings.measuredAt ? formatDateTime(device.readings.measuredAt) : '—'}</div></div>
+      </div>
     </Card>}
 
     {device?.type === 'occupancy' && <Card title="Ajuste de aforo">
