@@ -12,7 +12,6 @@ export function Modal({ open, title, children, footer, onClose, busy = false, hi
   onCloseRef.current = onClose;
   useEffect(() => {
     if (!open) return undefined;
-    const previous = document.activeElement;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     dialogRef.current?.focus();
@@ -21,7 +20,6 @@ export function Modal({ open, title, children, footer, onClose, busy = false, hi
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = overflow;
-      previous?.focus?.();
     };
   }, [open, busy]);
   if (!open) return null;
