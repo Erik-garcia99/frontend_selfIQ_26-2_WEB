@@ -8,20 +8,22 @@ import styles from './Modal.module.css';
 export function Modal({ open, title, children, footer, onClose, busy = false, hideClose = false, center = false }) {
   const titleId = useId();
   const dialogRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     if (!open) return undefined;
     const previous = document.activeElement;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     dialogRef.current?.focus();
-    const onKey = (event) => { if (event.key === 'Escape' && !busy) onClose?.(); };
+    const onKey = (event) => { if (event.key === 'Escape' && !busy) onCloseRef.current?.(); };
     document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = overflow;
       previous?.focus?.();
     };
-  }, [open, busy, onClose]);
+  }, [open, busy]);
   if (!open) return null;
   return createPortal(
     <div className={styles.overlay} onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose?.(); }}>
