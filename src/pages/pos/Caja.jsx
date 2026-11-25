@@ -43,6 +43,7 @@ export default function Caja() {
   const [notice, setNotice] = useState('');
   const [payment, setPayment] = useState('cash');
   const [received, setReceived] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [sale, setSale] = useState(null);
   const [locked, setLocked] = useState(true);
   const [password, setPassword] = useState('');
@@ -175,6 +176,7 @@ export default function Caja() {
     }
     const payload = {
       customer_id: null,
+      ...(customerPhone.trim() ? { customer_phone: customerPhone.trim() } : {}),
       items: cart.map((item) => ({ product_id: item.id, quantity: item.quantity })),
       payment: { method: payment, amount_received: payment === 'cash' && received ? Number(received) : null },
     };
@@ -183,6 +185,7 @@ export default function Caja() {
       setSale(result);
       setCart([]);
       setReceived('');
+      setCustomerPhone('');
       try { sessionStorage.removeItem(idemKey(branchId)); } catch { /* sin storage */ }
     } catch (e) {
       if (e.code === 'POS_LOCKED') {
@@ -264,6 +267,8 @@ export default function Caja() {
           <div className={styles.grand}><span>Total</span><strong>{money.format(total)}</strong></div>
         </div>
         <div className={styles.pay}>
+          <Field label="Teléfono del cliente (opcional)" value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value)} inputMode="tel" placeholder="Para guardar la compra en su app" />
           <label className={styles.label}>Método de pago
             <select className={styles.select} value={payment} onChange={(e) => setPayment(e.target.value)}>
               <option value="cash">Efectivo</option>
