@@ -17,12 +17,14 @@ export const listSales = (branchId, accessToken) =>
 export const getSale = (branchId, saleId, accessToken) =>
   apiRequest(`${base(branchId)}/sales/${encodeURIComponent(saleId)}`, { accessToken });
 
-export const voidSale = (branchId, saleId, reason, accessToken) =>
+export const voidSale = (branchId, saleId, reason, idempotencyKey, accessToken) =>
   apiRequest(`${base(branchId)}/sales/${encodeURIComponent(saleId)}/void`, {
     method: 'POST', body: { reason }, accessToken,
+    headers: { 'Idempotency-Key': idempotencyKey },
   });
 
-export const returnSale = (branchId, saleId, items, reason, accessToken) =>
+export const returnSale = (branchId, saleId, items, reason, idempotencyKey, accessToken) =>
   apiRequest(`${base(branchId)}/sales/${encodeURIComponent(saleId)}/returns`, {
     method: 'POST', body: { items, reason }, accessToken,
+    headers: { 'Idempotency-Key': idempotencyKey },
   });

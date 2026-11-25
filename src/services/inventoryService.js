@@ -24,7 +24,13 @@ export const adjustInventory = (branchId, payload, idempotencyKey, accessToken) 
 export const listReceipts = (branchId, accessToken) =>
   apiRequest(`${base(branchId)}/goods-receipts`, { accessToken });
 
-export const confirmReceipt = (branchId, receiptId, accessToken) =>
+export const createReceipt = (branchId, payload, accessToken) =>
+  apiRequest(`${base(branchId)}/goods-receipts`, {
+    method: 'POST', body: payload, accessToken,
+  });
+
+export const confirmReceipt = (branchId, receiptId, idempotencyKey, accessToken) =>
   apiRequest(`${base(branchId)}/goods-receipts/${encodeURIComponent(receiptId)}/confirm`, {
     method: 'POST', accessToken,
+    headers: { 'Idempotency-Key': idempotencyKey },
   });
